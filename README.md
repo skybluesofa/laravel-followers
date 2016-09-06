@@ -1,5 +1,5 @@
 # Laravel 5 Followers
-[![Build Status](https://travis-ci.org/skybluesofa/laravel-followers.svg?branch=master)](https://travis-ci.org/skybluesofa/laravel-followers) [![Code Climate](https://codeclimate.com/github/skybluesofa/laravel-followers/badges/gpa.svg)](https://codeclimate.com/github/skybluesofa/laravel-followers) [![Test Coverage](https://codeclimate.com/github/skybluesofa/laravel-followers/badges/coverage.svg)](https://codeclimate.com/github/skybluesofa/laravel-followers/coverage) [![Total Downloads](https://img.shields.io/packagist/dt/hootlex/laravel-friendships.svg?style=flat)](https://packagist.org/packages/hootlex/laravel-friendships) [![Version](https://img.shields.io/packagist/v/hootlex/laravel-friendships.svg?style=flat)](https://packagist.org/packages/hootlex/laravel-friendships) [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
+[![Build Status](https://travis-ci.org/skybluesofa/laravel-followers.svg?branch=master)](https://travis-ci.org/skybluesofa/laravel-followers) [![Code Climate](https://codeclimate.com/github/skybluesofa/laravel-followers/badges/gpa.svg)](https://codeclimate.com/github/skybluesofa/laravel-followers) [![Test Coverage](https://codeclimate.com/github/skybluesofa/laravel-followers/badges/coverage.svg)](https://codeclimate.com/github/skybluesofa/laravel-followers/coverage) [![Total Downloads](https://img.shields.io/packagist/dt/skybluesofa/laravel-followers.svg?style=flat)](https://packagist.org/packages/skybluesofa/laravel-followers) [![Version](https://img.shields.io/packagist/v/skybluesofa/laravel-followers.svg?style=flat)](https://packagist.org/packages/skybluesofa/laravel-followers) [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 
 
 Gives Eloquent models the ability to manage their followers.
@@ -54,64 +54,64 @@ class User extends Model
 ## How to use
 [Check the Test file to see the package in action](https://github.com/hootlex/laravel-friendships/blob/master/tests/FriendshipsTest.php)
 
-#### Send a Friend Request
+#### Send a Follow Request
 ```php
-$user->befriend($recipient);
+$user->follow($recipient);
 ```
 
-#### Accept a Friend Request
+#### Accept a Follow Request
 ```php
-$user->acceptFriendRequest($recipient);
+$recipient->acceptFollowRequestFrom($user);
 ```
 
-#### Deny a Friend Request
+#### Deny a Follow Request
 ```php
-$user->denyFriendRequest($recipient);
+$recipient->denyFollowRequestFrom($user);
 ```
 
-#### Remove Friend
+#### Remove Follow
 ```php
-$user->unfriend($recipient);
+$user->unfollow($recipient);
 ```
 
-#### Block a Model
+#### Block a User
 ```php
-$user->blockFriend($recipient);
+$user->blockBeingFollowedBy($recipient);
 ```
 
-#### Unblock a Model
+#### Unblock a User
 ```php
-$user->unblockFriend($recipient);
+$user->unblockBeingFollowedBy($recipient);
 ```
 
-#### Check if Model is Friend with another Model
+#### Check if User is Following another User
 ```php
-$user->isFriendWith($recipient);
+$user->isFollowing($recipient);
 ```
 
-#### Check if Model has pending a friend request with another Model
+#### Check if User is being Followed by another User
 ```php
-$user->hasPendingFriendRequest($recipient);
+$recipient->isFollowedBy($user);
 ```
 
-#### Check if Model has a pending friend request from another Model
+#### Check if User has a pending Follow request from another User
 ```php
-$user->hasFriendRequestFrom($recipient);
+$recipient->hasFollowRequestFrom($user);
 ```
 
-#### Check if Model has already sent a friend request to another Model
+#### Check if User sent a pending Follow request to another User
 ```php
-$user->hasSentFriendRequestTo($recipient);
+$user->hasSentFollowRequestTo($recipient);
 ```
 
-#### Check if Model has blocked another Model
+#### Check if User has blocked another User
 ```php
-$user->hasBlocked($recipient);
+$recipient->hasBlockedBeingFollowedBy($user);
 ```
 
-#### Check if Model is blocked by another Model
+#### Check if User is blocked by another User
 ```php
-$user->isBlockedBy($recipient);
+$user->isBlockedFromFollowing($recipient);
 ```
 
 #### Get a single friendship
@@ -154,11 +154,6 @@ $user->getFriendRequests();
 $user->getFriendsCount();
 ```
 
-#### Get the number of mutual Friends with another user
-```php
-$user->getMutualFriendsCount($otherUser);
-```
-
 ## Friends
 To get a collection of friend models (ex. User) use the following methods:
 #### Get Friends
@@ -171,65 +166,8 @@ $user->getFriends();
 $user->getFriends($perPage = 20);
 ```
 
-#### Get Friends of Friends
-```php
-$user->getFriendsOfFriends($perPage = 20);
-```
-
-#### Collection of Friends in specific group paginated:
-```php
-$user->getFriends($perPage = 20, $group_name);
-```
-
-#### Get mutual Friends with another user
-```php
-$user->getMutualFriends($otherUser, $perPage = 20);
-```
-
-## Friend groups
-The friend groups are defined in the `config/friendships.php` file.
-The package comes with a few default groups.
-To modify them, or add your own, you need to specify a `slug` and a `key`.
-
-```php
-// config/friendships.php
-...
-'groups' => [
-    'acquaintances' => 0,
-    'close_friends' => 1,
-    'family' => 2
-]
-```
-
-Since you've configured friend groups, you can group/ungroup friends using the following methods.
-
-#### Group a Friend
-```php
-$user->groupFriend($friend, $group_name);
-```
-
-#### Remove a Friend from family group
-```php
-$user->ungroupFriend($friend, 'family');
-```
-
-#### Remove a Friend from all groups
-```php
-$user->ungroupFriend($friend);
-```
-
-#### Get the number of Friends in specific group
-```php
-$user->getFriendsCount($group_name);
-```
-
-### To filter `friendships` by group you can pass a group slug.
-```php
-$user->getAllFriendships($group_name);
-$user->getAcceptedFriendships($group_name);
-$user->getPendingFriendships($group_name);
-...
-```
+## Thank you
+The basis of this code was garnered from [https://github.com/hootlex/laravel-friendships](https://github.com/hootlex/laravel-friendships). Although it was a jumping off point, much of the code has been rewritten to allow for Following as opposed to Mutual Friendship.
 
 ## Contributing
 See the [CONTRIBUTING](CONTRIBUTING.md) guide.

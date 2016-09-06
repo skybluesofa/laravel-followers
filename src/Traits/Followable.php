@@ -482,5 +482,5 @@ trait Followable
 
         return $this->where('id', '!=', $this->getKey())->whereIn('id', array_merge($recipients, $senders));
     }
-    
+
 }
