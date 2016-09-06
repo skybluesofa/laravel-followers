@@ -1,23 +1,21 @@
-# Laravel 5 Friendships
-[![Build Status](https://travis-ci.org/hootlex/laravel-friendships.svg?branch=v1.0.20)](https://travis-ci.org/hootlex/laravel-friendships) [![Code Climate](https://codeclimate.com/github/hootlex/laravel-friendships/badges/gpa.svg)](https://codeclimate.com/github/hootlex/laravel-friendships) [![Test Coverage](https://codeclimate.com/github/hootlex/laravel-friendships/badges/coverage.svg)](https://codeclimate.com/github/hootlex/laravel-friendships/coverage) [![Total Downloads](https://img.shields.io/packagist/dt/hootlex/laravel-friendships.svg?style=flat)](https://packagist.org/packages/hootlex/laravel-friendships) [![Version](https://img.shields.io/packagist/v/hootlex/laravel-friendships.svg?style=flat)](https://packagist.org/packages/hootlex/laravel-friendships) [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
+# Laravel 5 Followers
+[![Build Status](https://travis-ci.org/skybluesofa/laravel-followers.svg?branch=master)](https://travis-ci.org/skybluesofa/laravel-followers) [![Code Climate](https://codeclimate.com/github/hootlex/laravel-friendships/badges/gpa.svg)](https://codeclimate.com/github/hootlex/laravel-friendships) [![Test Coverage](https://codeclimate.com/github/hootlex/laravel-friendships/badges/coverage.svg)](https://codeclimate.com/github/hootlex/laravel-friendships/coverage) [![Total Downloads](https://img.shields.io/packagist/dt/hootlex/laravel-friendships.svg?style=flat)](https://packagist.org/packages/hootlex/laravel-friendships) [![Version](https://img.shields.io/packagist/v/hootlex/laravel-friendships.svg?style=flat)](https://packagist.org/packages/hootlex/laravel-friendships) [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 
 
-This package gives Eloquent models the ability to manage their friendships.
-You can easily design a Facebook like Friend System.
+Gives Eloquent models the ability to manage their followers.
 
 ##Models can:
-- Send Friend Requests
-- Accept Friend Requests
-- Deny Friend Requests
+- Send Follow Requests
+- Accept Follow Requests
+- Deny Follow Requests
 - Block Another Model
-- Group Friends
 
 ## Installation
 
 First, install the package through Composer.
 
 ```php
-composer require hootlex/laravel-friendships
+composer require skybluesofa/laravel-followers
 ```
 
 Then include the service provider inside `config/app.php`.
@@ -25,18 +23,18 @@ Then include the service provider inside `config/app.php`.
 ```php
 'providers' => [
     ...
-    Hootlex\Friendships\FriendshipsServiceProvider::class,
+    Skybluesofa\Followers\ServiceProvider::class,
     ...
 ];
 ```
 Publish config and migrations
 
 ```
-php artisan vendor:publish --provider="Hootlex\Friendships\FriendshipsServiceProvider"
+php artisan vendor:publish --provider="Skybluesofa\Followers\ServiceProvider"
 ```
 Configure the published config in
 ```
-config\friendships.php
+config\followers.php
 ```
 Finally, migrate the database
 ```
@@ -45,10 +43,10 @@ php artisan migrate
 
 ## Setup a Model
 ```php
-use Hootlex\Friendships\Traits\Friendable;
+use Skybluesofa\Followers\Traits\Followable;
 class User extends Model
 {
-    use Friendable;
+    use Followable;
     ...
 }
 ```
