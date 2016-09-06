@@ -52,7 +52,7 @@ class User extends Model
 ```
 
 ## How to use
-[Check the Test file to see the package in action](https://github.com/hootlex/laravel-friendships/blob/master/tests/FriendshipsTest.php)
+[Check the Test file to see the package in action](https://github.com/skybluesofa/laravel-followers/blob/master/tests/FollowersTest.php)
 
 #### Send a Follow Request
 ```php

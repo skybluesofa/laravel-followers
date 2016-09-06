@@ -31,7 +31,6 @@ before_script:
   - composer update --dev --prefer-source --no-interaction
   - php artisan migrate
   - cd -
-  - yes
 
 script:
   - vendor/bin/phpunit

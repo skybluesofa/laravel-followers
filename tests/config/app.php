@@ -1,6 +1,6 @@
 <?php
 return array(
     'providers' => append_config(array(
-        'Skybluesofa\Followers\FollowerServiceProvider'
+        'Skybluesofa\Followers\ServiceProvider'
     )),
 );
