@@ -9,7 +9,7 @@ php:
 
 addons:
     code_climate:
-        repo_token: bb9681de04daca830a87c3eb0f6500b0a815f8262107fec833e0852df2401466
+        repo_token: a4a2b434edd8850ccf5354c3dc1202b1c824cd442fe7c4c5a2d0d82edef1cae0
 
 sudo: false
 
