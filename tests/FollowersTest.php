@@ -88,7 +88,7 @@ class FollowersTest extends TestCase
         //send fr
         $sender->follow($recipient);
 
-        $this->assertFalse($sender->hasSentFollowRequestTo($recipient));
+        $this->assertTrue($sender->hasSentFollowRequestTo($recipient));
         $this->assertTrue($recipient->hasFollowRequestFrom($sender));
     }
 
@@ -124,6 +124,7 @@ class FollowersTest extends TestCase
     {
         $sender    = createUser();
         $recipient = createUser();
+
         $sender->follow($recipient);
 
         $recipient->denyFollowRequestFrom($sender);
@@ -132,7 +133,7 @@ class FollowersTest extends TestCase
 
         //fr has been delete
         $this->assertCount(0, $recipient->getFollowerRequests());
-        $this->assertCount(1, $sender->getDeniedFollowerRequest());
+        $this->assertCount(1, $sender->getDeniedRequestsToFollow());
     }
 
     /** @test */
@@ -141,13 +142,11 @@ class FollowersTest extends TestCase
         $sender    = createUser();
         $recipient = createUser();
 
-        $sender->blockFollowed($recipient);
+        $sender->blockBeingFollowedBy($recipient);
 
-        $this->assertTrue($recipient->isBlockedByFollower($sender));
-        $this->assertTrue($sender->hasBlockedFollowed($recipient));
+        $this->assertTrue($sender->hasBlockedBeingFollowedBy($recipient));
         //sender is not blocked by receipient
-        $this->assertFalse($sender->isBlockedByFollowed($recipient));
-        $this->assertFalse($recipient->hasBlockedFollower($sender));
+        $this->assertTrue($recipient->isBlockedFromFollowing($sender));
     }
 
     /** @test */
@@ -156,11 +155,11 @@ class FollowersTest extends TestCase
         $sender    = createUser();
         $recipient = createUser();
 
-        $sender->blockFollowed($recipient);
-        $sender->unblockFollowed($recipient);
+        $sender->blockBeingFollowedBy($recipient);
+        $sender->unblockBeingFollowedBy($recipient);
 
-        $this->assertFalse($recipient->isBlockedByFollower($sender));
-        $this->assertFalse($sender->hasBlockedFollowed($recipient));
+        $this->assertFalse($recipient->isBlockedFromBeingFollowedBy($sender));
+        $this->assertFalse($sender->hasBlockedBeingFollowedBy($recipient));
     }
 
     /** @test */
@@ -169,24 +168,24 @@ class FollowersTest extends TestCase
         $sender    = createUser();
         $recipient = createUser();
 
-        $sender->blockFollowed($recipient);
-        $this->assertTrue($recipient->isBlockedByFollower($sender));
+        $sender->blockBeingFollowedBy($recipient);
+        $this->assertTrue($recipient->isBlockedFromFollowing($sender));
 
         // now recipient blocks sender too
-        $recipient->blockFollower($sender);
+        $recipient->blockBeingFollowedBy($sender);
 
         // expect that both users have blocked each other
-        $this->assertTrue($sender->isBlockedByFollowed($recipient));
-        $this->assertTrue($recipient->isBlockedByFollower($sender));
+        $this->assertTrue($sender->isBlockedFromFollowing($recipient));
+        $this->assertTrue($recipient->isBlockedFromFollowing($sender));
 
-        $sender->unblockFollowed($recipient);
+        $sender->unblockBeingFollowedBy($recipient);
 
-        $this->assertTrue($sender->isBlockedByFollowed($recipient));
-        $this->assertFalse($recipient->isBlockedByFollower($sender));
+        $this->assertFalse($sender->isBlockedFromBeingFollowedBy($recipient));
+        $this->assertTrue($recipient->isBlockedFromBeingFollowedBy($sender));
 
-        $recipient->unblockFollower($sender);
-        $this->assertFalse($sender->isBlockedByFollowed($recipient));
-        $this->assertFalse($recipient->isBlockedByFollower($sender));
+        $recipient->unblockBeingFollowedBy($sender);
+        $this->assertFalse($sender->isBlockedFromBeingFollowedBy($recipient));
+        $this->assertFalse($recipient->isBlockedFromBeingFollowedBy($sender));
     }
 
     /** @test */
@@ -195,7 +194,7 @@ class FollowersTest extends TestCase
         $sender    = createUser();
         $recipient = createUser();
 
-        $sender->blockFollowed($recipient);
+        $sender->blockBeingFollowedBy($recipient);
         $sender->follow($recipient);
         $sender->follow($recipient);
 
@@ -203,7 +202,7 @@ class FollowersTest extends TestCase
     }
 
     /** @test */
-    public function it_returns_all_user_friendships()
+    public function it_returns_all_user_follow_requests()
     {
         $sender     = createUser();
         $recipients = createUser([], 3);
@@ -215,11 +214,11 @@ class FollowersTest extends TestCase
         $recipients[0]->acceptFollowRequestFrom($sender);
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
-        $this->assertCount(3, $sender->getAllFollowed());
+        $this->assertCount(3, $sender->getAllFollowing());
     }
 
     /** @test */
-    public function it_returns_accepted_user_friendships_number()
+    public function it_returns_number_of_accepted_user_following()
     {
         $sender     = createUser();
         $recipients = createUser([], 3);
@@ -231,11 +230,11 @@ class FollowersTest extends TestCase
         $recipients[0]->acceptFollowRequestFrom($sender);
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
-        $this->assertEquals(2, $sender->getFollowedCount());
+        $this->assertEquals(2, $sender->getFollowingCount());
     }
 
     /** @test */
-    public function it_returns_accepted_user_friendships()
+    public function it_returns_accepted_user_following()
     {
         $sender     = createUser();
         $recipients = createUser([], 3);
@@ -247,7 +246,7 @@ class FollowersTest extends TestCase
         $recipients[0]->acceptFollowRequestFrom($sender);
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
-        $this->assertCount(2, $sender->getAcceptedFollowerRequests());
+        $this->assertCount(2, $sender->getAcceptedRequestsToFollow());
     }
 
     /** @test */
@@ -263,12 +262,12 @@ class FollowersTest extends TestCase
         $recipients[0]->acceptFollowRequestFrom($sender);
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
-        $this->assertCount(2, $sender->getAcceptedFollowerRequests());
+        $this->assertCount(2, $sender->getAcceptedRequestsToFollow());
 
-        $this->assertCount(1, $recipients[0]->getAcceptedFollowerRequests());
-        $this->assertCount(1, $recipients[1]->getAcceptedFollowerRequests());
-        $this->assertCount(0, $recipients[2]->getAcceptedFollowerRequests());
-        $this->assertCount(0, $recipients[3]->getAcceptedFollowerRequests());
+        $this->assertCount(1, $recipients[0]->getAcceptedRequestsToBeFollowed());
+        $this->assertCount(1, $recipients[1]->getAcceptedRequestsToBeFollowed());
+        $this->assertCount(0, $recipients[2]->getAcceptedRequestsToBeFollowed());
+        $this->assertCount(0, $recipients[3]->getAcceptedRequestsToBeFollowed());
     }
 
     /** @test */
@@ -282,7 +281,7 @@ class FollowersTest extends TestCase
         }
 
         $recipients[0]->acceptFollowRequestFrom($sender);
-        $this->assertCount(2, $sender->getPendingFollowerRequests());
+        $this->assertCount(2, $sender->getPendingRequestsRequestsToFollow());
     }
 
     /** @test */
@@ -298,7 +297,7 @@ class FollowersTest extends TestCase
         $recipients[0]->acceptFollowRequestFrom($sender);
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
-        $this->assertCount(1, $sender->getDeniedFollowerRequests());
+        $this->assertCount(1, $sender->getDeniedRequestsToFollow());
     }
 
     /** @test */
@@ -313,12 +312,12 @@ class FollowersTest extends TestCase
 
         $recipients[0]->acceptFollowRequestFrom($sender);
         $recipients[1]->acceptFollowRequestFrom($sender);
-        $recipients[2]->blockFollower($sender);
-        $this->assertCount(1, $sender->getBlockedFollowed());
+        $recipients[2]->blockBeingFollowedBy($sender);
+        $this->assertCount(1, $sender->getBlockedFollowing());
     }
 
     /** @test */
-    private function it_returns_user_friends()
+    public function it_returns_followed_users()
     {
         $sender     = createUser();
         $recipients = createUser([], 4);
@@ -331,16 +330,16 @@ class FollowersTest extends TestCase
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
 
-        $this->assertCount(2, $sender->getFollowing());
-        $this->assertCount(1, $recipients[1]->getFollowing());
-        $this->assertCount(0, $recipients[2]->getFollowing());
-        $this->assertCount(0, $recipients[3]->getFollowing());
+        $this->assertCount(2, $sender->getAcceptedRequestsToFollow());
+        $this->assertCount(1, $recipients[1]->getAcceptedRequestsToBeFollowed());
+        $this->assertCount(0, $recipients[2]->getAcceptedRequestsToBeFollowed());
+        $this->assertCount(0, $recipients[3]->getAcceptedRequestsToBeFollowed());
 
-        $this->containsOnlyInstancesOf(\App\User::class, $sender->getFriends());
+        $this->containsOnlyInstancesOf(\App\User::class, $sender->getAcceptedRequestsToFollow());
     }
 
     /** @test */
-    private function it_returns_user_friends_per_page()
+    public function it_returns_user_follows_per_page()
     {
         $sender     = createUser();
         $recipients = createUser([], 6);
@@ -349,135 +348,22 @@ class FollowersTest extends TestCase
             $sender->follow($recipient);
         }
 
-        $recipients[0]->acceptFriendRequest($sender);
-        $recipients[1]->acceptFriendRequest($sender);
-        $recipients[2]->denyFriendRequest($sender);
-        $recipients[3]->acceptFriendRequest($sender);
-        $recipients[4]->acceptFriendRequest($sender);
+        $recipients[0]->acceptFollowRequestFrom($sender);
+        $recipients[1]->acceptFollowRequestFrom($sender);
+        $recipients[2]->denyFollowRequestFrom($sender);
+        $recipients[3]->acceptFollowRequestFrom($sender);
+        $recipients[4]->acceptFollowRequestFrom($sender);
 
 
-        $this->assertCount(2, $sender->getFriends(2));
-        $this->assertCount(4, $sender->getFriends(0));
-        $this->assertCount(4, $sender->getFriends(10));
-        $this->assertCount(1, $recipients[1]->getFriends());
-        $this->assertCount(0, $recipients[2]->getFriends());
-        $this->assertCount(0, $recipients[5]->getFriends(2));
+        $this->assertCount(2, $sender->getFollowingList(2));
+        $this->assertCount(4, $sender->getFollowingList(0));
+        $this->assertCount(4, $sender->getFollowingList(10));
+        $this->assertCount(1, $recipients[1]->getFollowedByList());
+        $this->assertCount(0, $recipients[2]->getFollowedByList());
+        $this->assertCount(0, $recipients[5]->getFollowedByList(2));
 
-        $this->containsOnlyInstancesOf(\App\User::class, $sender->getFriends());
+        $this->containsOnlyInstancesOf(\App\User::class, $sender->getFollowingList());
+        $this->containsOnlyInstancesOf(\App\User::class, $recipients[5]->getFollowedByList());
     }
 
-    /** @test */
-    private function it_returns_user_friends_of_friends()
-    {
-        $sender     = createUser();
-        $recipients = createUser([], 2);
-        $fofs       = createUser([], 5)->chunk(3);
-
-        foreach ($recipients as $recipient) {
-            $sender->follow($recipient);
-            $recipient->acceptFriendRequest($sender);
-
-            //add some friends to each recipient too
-            foreach ($fofs->shift() as $fof) {
-                $recipient->follow($fof);
-                $fof->acceptFriendRequest($recipient);
-            }
-        }
-
-        $this->assertCount(2, $sender->getFriends());
-        $this->assertCount(4, $recipients[0]->getFriends());
-        $this->assertCount(3, $recipients[1]->getFriends());
-
-        $this->assertCount(5, $sender->getFriendsOfFriends());
-
-        $this->containsOnlyInstancesOf(\App\User::class, $sender->getFriendsOfFriends());
-    }
-
-    /** @test */
-    private function it_returns_user_mutual_friends()
-    {
-        $sender     = createUser();
-        $recipients = createUser([], 2);
-        $fofs       = createUser([], 5)->chunk(3);
-
-        foreach ($recipients as $recipient) {
-            $sender->follow($recipient);
-            $recipient->acceptFriendRequest($sender);
-
-            //add some friends to each recipient too
-            foreach ($fofs->shift() as $fof) {
-                $recipient->follow($fof);
-                $fof->acceptFriendRequest($recipient);
-                $fof->befriend($sender);
-                $sender->acceptFriendRequest($fof);
-            }
-        }
-
-        $this->assertCount(3, $sender->getMutualFriends($recipients[0]));
-        $this->assertCount(3, $recipients[0]->getMutualFriends($sender));
-
-        $this->assertCount(2, $sender->getMutualFriends($recipients[1]));
-        $this->assertCount(2, $recipients[1]->getMutualFriends($sender));
-
-        $this->containsOnlyInstancesOf(\App\User::class, $sender->getMutualFriends($recipients[0]));
-    }
-
-    /** @test */
-    private function it_returns_user_mutual_friends_per_page()
-    {
-        $sender     = createUser();
-        $recipients = createUser([], 2);
-        $fofs       = createUser([], 8)->chunk(5);
-
-        foreach ($recipients as $recipient) {
-            $sender->follow($recipient);
-            $recipient->acceptFriendRequest($sender);
-
-            //add some friends to each recipient too
-            foreach ($fofs->shift() as $fof) {
-                $recipient->follow($fof);
-                $fof->acceptFriendRequest($recipient);
-                $fof->follow($sender);
-                $sender->acceptFriendRequest($fof);
-            }
-        }
-
-        $this->assertCount(2, $sender->getMutualFriends($recipients[0], 2));
-        $this->assertCount(5, $sender->getMutualFriends($recipients[0], 0));
-        $this->assertCount(5, $sender->getMutualFriends($recipients[0], 10));
-        $this->assertCount(2, $recipients[0]->getMutualFriends($sender, 2));
-        $this->assertCount(5, $recipients[0]->getMutualFriends($sender, 0));
-        $this->assertCount(5, $recipients[0]->getMutualFriends($sender, 10));
-
-        $this->assertCount(1, $recipients[1]->getMutualFriends($recipients[0], 10));
-
-        $this->containsOnlyInstancesOf(\App\User::class, $sender->getMutualFriends($recipients[0], 2));
-    }
-
-    /** @test */
-    private function it_returns_user_mutual_friends_number()
-    {
-        $sender     = createUser();
-        $recipients = createUser([], 2);
-        $fofs       = createUser([], 5)->chunk(3);
-
-        foreach ($recipients as $recipient) {
-            $sender->follow($recipient);
-            $recipient->acceptFriendRequest($sender);
-
-            //add some friends to each recipient too
-            foreach ($fofs->shift() as $fof) {
-                $recipient->befriend($fof);
-                $fof->acceptFriendRequest($recipient);
-                $fof->follow($sender);
-                $sender->acceptFriendRequest($fof);
-            }
-        }
-
-        $this->assertEquals(3, $sender->getMutualFriendsCount($recipients[0]));
-        $this->assertEquals(3, $recipients[0]->getMutualFriendsCount($sender));
-
-        $this->assertEquals(2, $sender->getMutualFriendsCount($recipients[1]));
-        $this->assertEquals(2, $recipients[1]->getMutualFriendsCount($sender));
-    }
 }

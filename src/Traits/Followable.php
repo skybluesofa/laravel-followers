@@ -30,11 +30,13 @@ trait Followable
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     * @param Model $recipient
+     *
+     * @return bool
      */
-    public function following()
+    public function unfollow(Model $recipient)
     {
-        return $this->hasMany(Follower::class, 'sender_id');
+        return $this->whenFollowing($recipient)->delete();
     }
 
     /**
@@ -42,10 +44,28 @@ trait Followable
      *
      * @return bool
      */
-    public function unfollow(Model $recipient)
+    public function isFollowing(Model $recipient)
     {
+        return $this->whenFollowing($recipient)->where('status', Status::ACCEPTED)->exists();
+    }
 
-        return $this->whenFollowing($recipient)->delete();
+    /**
+     * @param Model $sender
+     *
+     * @return bool
+     */
+    public function isFollowedBy(Model $sender)
+    {
+        //return Follower::whereRecipient($this)->whereSender($sender)->where('status', Status::ACCEPTED)->exists();
+        return $sender->whenFollowing($this)->where('status', Status::ACCEPTED)->exists();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function following()
+    {
+        return $this->hasMany(Follower::class, 'sender_id');
     }
 
     /**
@@ -74,27 +94,6 @@ trait Followable
     public function getFollowerRequests()
     {
         return Follower::whereRecipient($this)->whereStatus(Status::PENDING)->get();
-    }
-
-    /**
-     * @param Model $recipient
-     *
-     * @return bool
-     */
-    public function isFollowing(Model $recipient)
-    {
-        return $this->whenFollowing($recipient)->where('status', Status::ACCEPTED)->exists();
-    }
-
-    /**
-     * @param Model $sender
-     *
-     * @return bool
-     */
-    public function isFollowedBy(Model $sender)
-    {
-        //return Follower::whereRecipient($this)->whereSender($sender)->where('status', Status::ACCEPTED)->exists();
-        return $sender->whenFollowing($this)->where('status', Status::ACCEPTED)->exists();
     }
 
     /**
@@ -130,8 +129,8 @@ trait Followable
     {
         // if user has Blocked the recipient and changed his mind
         // he can send a friend request after unblocking
-        if ($this->hasBlockedFollowed($recipient)) {
-            $this->unblockFollowed($recipient);
+        if ($this->hasBlockedBeingFollowedBy($recipient)) {
+            $this->unblockBeingFollowedBy($recipient);
             return true;
         }
 
@@ -150,28 +149,18 @@ trait Followable
      *
      * @return bool
      */
-    public function hasBlockedFollowed(Model $recipient)
+    public function hasBlockedBeingFollowedBy(Model $sender)
     {
-        return $this->followed()->whereRecipient($recipient)->whereStatus(Status::BLOCKED)->exists();
-    }
-
-    /**
-     * @param Model $recipient
-     *
-     * @return bool
-     */
-    public function hasBlockedFollower(Model $sender)
-    {
-        return $this->following()->whereSender($sender)->whereStatus(Status::BLOCKED)->exists();
+        return $this->followers()->whereSender($sender)->whereStatus(Status::BLOCKED)->exists();
     }
     /**
      * @param Model $recipient
      *
      * @return bool
      */
-    public function isBlockedByFollowed(Model $recipient)
+    public function isBlockedFromFollowing(Model $recipient)
     {
-        return $recipient->hasBlockedFollower($this);
+        return $recipient->hasBlockedBeingFollowedBy($this);
     }
 
     /**
@@ -179,17 +168,17 @@ trait Followable
      *
      * @return bool
      */
-    public function isBlockedByFollower(Model $sender)
+    public function isBlockedFromBeingFollowedBy(Model $sender)
     {
-        return $this->hasBlockedFollower($sender);
+        return $this->hasBlockedBeingFollowedBy($sender);
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
-    public function followed()
+    public function followers()
     {
-        return Follower::where('sender_id', $this->id);
+        return Follower::where('recipient_id', $this->id);
     }
 
     /**
@@ -197,9 +186,9 @@ trait Followable
      *
      * @return \Skybluesofa\Followers\Models\Follower
      */
-    public function blockFollower(Model $sender)
+    public function blockBeingFollowedBy(Model $sender)
     {
-        if (!$sender->isBlockedByFollowed($this)) {
+        if (!$this->hasBlockedBeingFollowedBy($sender)) {
             $this->whenFollowedBy($sender)->delete();
         }
 
@@ -209,27 +198,11 @@ trait Followable
     }
 
     /**
-     * @param Model $recipient
-     *
-     * @return \Skybluesofa\Followers\Models\Follower
-     */
-    public function blockFollowed(Model $recipient)
-    {
-        if (!$recipient->isBlockedByFollower($this)) {
-            $this->whenFollowing($recipient)->delete();
-        }
-
-        return (new Follower)->fillSender($this)->fillRecipient($recipient)->fill([
-            'status' => Status::BLOCKED,
-        ])->save();
-    }
-
-    /**
      * @param Model $sender
      *
      * @return mixed
      */
-    public function unblockFollower(Model $sender)
+    public function unblockBeingFollowedBy(Model $sender)
     {
         return $this->whenFollowedBy($sender)->delete();
     }
@@ -239,7 +212,7 @@ trait Followable
      *
      * @return mixed
      */
-    public function unblockFollowed(Model $recipient)
+    public function unblockFollowing(Model $recipient)
     {
         return $this->whenFollowing($recipient)->delete();
     }
@@ -251,7 +224,35 @@ trait Followable
      */
     public function getFollowedBy(Model $sender)
     {
-        return $this->findFollowedRelationships($sender)->first();
+        return $this->findFollowedByRelationships($sender)->first();
+    }
+
+    /**
+     * This method will not return Friendship models
+     * It will return the 'friends' models. ex: App\User
+     *
+     * @param int $perPage Number
+     * @param string $groupSlug
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getFollowingList($perPage = null)
+    {
+        return $this->getOrPaginate($this->getFollowingQueryBuilder(), $perPage);
+    }
+
+    /**
+     * This method will not return Friendship models
+     * It will return the 'friends' models. ex: App\User
+     *
+     * @param int $perPage Number
+     * @param string $groupSlug
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getFollowedByList($perPage = null)
+    {
+        return $this->getOrPaginate($this->getFollowedByQueryBuilder(), $perPage);
     }
 
     /**
@@ -261,7 +262,7 @@ trait Followable
      */
     public function getFollowing(Model $recipient)
     {
-        return $this->findFollowerRelationships($recipient)->first();
+        return $this->findFollowingRelationships($recipient)->first();
     }
 
     /**
@@ -270,9 +271,9 @@ trait Followable
      * @param string $groupSlug
      *
      */
-    public function getAllFollowers()
+    public function getAllFollowedBy()
     {
-        return $this->findFollowerRelationships()->get();
+        return $this->findFollowedByRelationships()->get();
     }
 
     /**
@@ -281,9 +282,9 @@ trait Followable
      * @param string $groupSlug
      *
      */
-    public function getAllFollowed()
+    public function getAllFollowing()
     {
-        return $this->findFollowedRelationships()->get();
+        return $this->findFollowingRelationships()->get();
     }
 
     /**
@@ -292,9 +293,9 @@ trait Followable
      * @param string $groupSlug
      *
      */
-    public function getAcceptedFollowerRequests()
+    public function getAcceptedRequestsToFollow()
     {
-        return $this->findFollowerRelationships(Status::ACCEPTED)->get();
+        return $this->findFollowingRelationships(Status::ACCEPTED)->get();
     }
 
     /**
@@ -303,9 +304,9 @@ trait Followable
      * @param string $groupSlug
      *
      */
-    public function getAcceptedFollowedRequests()
+    public function getAcceptedRequestsToBeFollowed()
     {
-        return $this->findFollowedRelationships(Status::ACCEPTED)->get();
+        return $this->findFollowedByRelationships(Status::ACCEPTED)->get();
     }
 
     /**
@@ -314,54 +315,54 @@ trait Followable
      * @param string $groupSlug
      *
      */
-    public function getPendingFollowerRequests()
+    public function getPendingRequestsRequestsToFollow()
     {
-        return $this->findFollowerRelationships(Status::PENDING)->get();
+        return $this->findFollowingRelationships(Status::PENDING)->get();
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      *
      */
-     public function getPendingFollowedRequests()
+     public function getPendingRequestsToBeFollowed()
      {
-         return $this->findFollowedRelationships(Status::PENDING)->get();
+         return $this->findFollowedByRelationships(Status::PENDING)->get();
      }
 
      /**
       * @return \Illuminate\Database\Eloquent\Collection
       *
       */
-    public function getDeniedFollowerRequests()
+    public function getDeniedRequestsToFollow()
     {
-        return $this->findFollowerRelationships(Status::DENIED)->get();
+        return $this->findFollowingRelationships(Status::DENIED)->get();
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      *
      */
-    public function getDeniedFollowedRequests()
+    public function getDeniedRequestsToBeFollowed()
     {
-        return $this->findFollowedRelationships(Status::DENIED)->get();
+        return $this->findFollowedByRelationships(Status::DENIED)->get();
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      *
      */
-    public function getBlockedFollowers()
+    public function getBlockedFollowing()
     {
-        return $this->findFollowerRelationships(Status::BLOCKED)->get();
+        return $this->findFollowingRelationships(Status::BLOCKED)->get();
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      *
      */
-    public function getBlockedFollowed()
+    public function getBlockedFollowedBy()
     {
-        return $this->findFollowedRelationships(Status::BLOCKED)->get();
+        return $this->findFollowedByRelationships(Status::BLOCKED)->get();
     }
 
     /**
@@ -379,12 +380,11 @@ trait Followable
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    private function findFollowerRelationships($status = null)
+    private function findFollowingRelationships($status = null)
     {
-
         $query = Follower::where(function ($query) {
             $query->where(function ($q) {
-                $q->whereRecipient($this);
+                $q->whereSender($this);
             });
         });
 
@@ -412,12 +412,12 @@ trait Followable
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    private function findFollowedRelationships($status = null)
+    private function findFollowedByRelationships($status = null)
     {
 
         $query = Follower::where(function ($query) {
             $query->where(function ($q) {
-                $q->whereSender($this);
+                $q->whereRecipient($this);
             });
         });
 
@@ -436,8 +436,51 @@ trait Followable
      *
      * @return integer
      */
-    public function getFollowedCount()
+    public function getFollowingCount()
     {
-        return $this->findFollowedRelationships(Status::ACCEPTED)->count();
+        return $this->findFollowingRelationships(Status::ACCEPTED)->count();
     }
+
+    protected function getOrPaginate($builder, $perPage)
+    {
+        if (is_null($perPage)) {
+            return $builder->get();
+        }
+        return $builder->paginate($perPage);
+    }
+
+    /**
+     * Get the query builder of the 'friend' model
+     *
+     * @param string $groupSlug
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    private function getFollowingQueryBuilder()
+    {
+
+        $following = $this->findFollowingRelationships(Status::ACCEPTED)->get(['sender_id', 'recipient_id']);
+        $recipients  = $following->pluck('recipient_id')->all();
+        $senders     = $following->pluck('sender_id')->all();
+
+        return $this->where('id', '!=', $this->getKey())->whereIn('id', array_merge($recipients, $senders));
+    }
+
+    /**
+     * Get the query builder of the 'friend' model
+     *
+     * @param string $groupSlug
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    private function getFollowedByQueryBuilder()
+    {
+
+        $following = $this->findFollowedByRelationships(Status::ACCEPTED)->get(['sender_id', 'recipient_id']);
+        $recipients  = $following->pluck('recipient_id')->all();
+        $senders     = $following->pluck('sender_id')->all();
+
+        return $this->where('id', '!=', $this->getKey())->whereIn('id', array_merge($recipients, $senders));
+    }
+    
 }
