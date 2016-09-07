@@ -14,7 +14,7 @@ addons:
 sudo: false
 
 env:
-    - APP_ENV=testing DB_DATABASE=follower_test DB_TEST_USERNAME=travis DB_TEST_PASSWORD= CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_DRIVER=sync
+    - APP_ENV=testing DB_CONNECTION=mysql DB_USERNAME=travis DB_PASSWORD= CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_DRIVER=sync
 
 # cache vendor dirs
 cache:
