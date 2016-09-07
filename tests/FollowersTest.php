@@ -247,6 +247,7 @@ class FollowersTest extends TestCase
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
         $this->assertCount(2, $sender->getAcceptedRequestsToFollow());
+        $this->assertTrue($recipients[0]->isFollowedBy($sender));
     }
 
     /** @test */
@@ -282,6 +283,7 @@ class FollowersTest extends TestCase
 
         $recipients[0]->acceptFollowRequestFrom($sender);
         $this->assertCount(2, $sender->getPendingRequestsRequestsToFollow());
+        $this->assertCount(1, $recipients[1]->getPendingRequestsToBeFollowed());
     }
 
     /** @test */
@@ -298,6 +300,7 @@ class FollowersTest extends TestCase
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
         $this->assertCount(1, $sender->getDeniedRequestsToFollow());
+        $this->assertCount(1, $recipients[2]->getDeniedRequestsToBeFollowed());
     }
 
     /** @test */

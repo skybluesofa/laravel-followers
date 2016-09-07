@@ -210,16 +210,6 @@ trait Followable
     /**
      * @param Model $recipient
      *
-     * @return mixed
-     */
-    public function unblockFollowing(Model $recipient)
-    {
-        return $this->whenFollowing($recipient)->delete();
-    }
-
-    /**
-     * @param Model $recipient
-     *
      * @return \Skybluesofa\Followers\Models\Follower
      */
     public function getFollowedBy(Model $sender)

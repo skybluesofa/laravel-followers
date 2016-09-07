@@ -1,7 +1,13 @@
 <?php
 return array(
-    'default' => 'testing',
+    'default' => 'sqlite',
     'connections' => array(
+        'sqlite' => [
+            'driver' => 'sqlite',
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix' => '',
+        ],
+
         'testing' => [
             'driver'    => 'mysql',
             'host'      => env('DB_HOST', 'localhost'),
