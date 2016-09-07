@@ -1,7 +1,7 @@
 language: php
 
 services:
-  - sqlite
+  - sqlite3
 
 php:
   - 5.6
