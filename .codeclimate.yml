@@ -1,6 +1,23 @@
 JavaScript: true
 PHP: true
 
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - ruby
+      - javascript
+      - python
+      - php
+  fixme:
+    enabled: true
+  phpmd:
+    enabled: true
+ratings:
+  paths:
+  - "**.inc"
+  - "**.php"
 exclude_paths:
-- test/**/*
-- vendor/**/*
+  - tests/
+  - vendor/
