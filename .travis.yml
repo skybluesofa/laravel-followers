@@ -1,7 +1,7 @@
 language: php
 
 services:
-  - sqlite3
+  - mysql
 
 php:
   - 5.6
@@ -14,7 +14,7 @@ addons:
 sudo: false
 
 env:
-    - APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=":memory:" DB_USERNAME=travis DB_PASSWORD= CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_DRIVER=sync
+    - APP_ENV=testing DB_CONNECTION=testing DB_DATABASE=follower_test DB_USERNAME=travis DB_PASSWORD= CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_DRIVER=sync
 
 # cache vendor dirs
 cache:
@@ -26,6 +26,7 @@ install:
   - COMPOSER_DISCARD_CHANGES=1 composer install --dev --prefer-source --no-interaction
 
 before_script:
+  - mysql -e 'create database follower_test;'
   - cp src/database/migrations/create_followers_table.php vendor/laravel/laravel/database/migrations/2016_09_07_053825_create_followers_table.php
   - yes | cp tests/config/.env.travis .env
   - yes | cp tests/config/followers.php vendor/laravel/laravel/config/followers.php
