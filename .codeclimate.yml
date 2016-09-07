@@ -1,0 +1,6 @@
+JavaScript: true
+PHP: true
+
+exclude_paths:
+- test/**/*
+- vendor/**/*
