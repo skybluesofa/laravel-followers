@@ -1,17 +1,17 @@
 <?php
 return array(
-    'default' => 'mysql',
+    'default' => 'testing',
     'connections' => array(
-        'mysql' => [
-            'driver'    => 'mysql2',
-            'host'      => '127.0.0.1',
-            'database'  => 'follower_test',
-            'username'  => 'travis',
-            'password'  => '',
+        'testing' => [
+            'driver'    => 'mysql',
+            'host'      => env('DB_TEST_HOST', 'localhost'),
+            'database'  => env('DB_TEST_DATABASE', 'follower_test'),
+            'username'  => env('DB_TEST_USERNAME', 'travis'),
+            'password'  => env('DB_TEST_PASSWORD', ''),
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
             'strict'    => false,
-        ]
+        ],
     ),
 );
