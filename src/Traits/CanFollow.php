@@ -128,7 +128,7 @@ trait CanFollow
      */
     public function getFollowing(Model $recipient)
     {
-        return $this->findFollowing($recipient)->first();
+        return $this->whenFollowing($recipient)->first();
     }
 
     /**

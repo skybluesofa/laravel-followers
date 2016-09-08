@@ -203,6 +203,16 @@ class FollowersTest extends TestCase
     }
 
     /** @test */
+    public function user_cannot_follow_a_nonfollowable_model()
+    {
+        $sender     = createUser();
+        // Widget does not have the 'CanBeFollowed' trait
+        $recipient = createWidget();
+
+        $this->assertFalse($sender->follow($recipient));
+    }
+
+    /** @test */
     public function it_returns_all_user_follow_requests()
     {
         $sender     = createUser();
@@ -237,17 +247,20 @@ class FollowersTest extends TestCase
     /** @test */
     public function it_returns_number_of_accepted_user_following()
     {
-        $sender     = createUser();
+        $senders     = createUser([], 2);
         $recipients = createUser([], 3);
 
         foreach ($recipients as $recipient) {
-            $sender->follow($recipient);
+            $senders[0]->follow($recipient);
         }
 
-        $recipients[0]->acceptFollowRequestFrom($sender);
-        $recipients[1]->acceptFollowRequestFrom($sender);
-        $recipients[2]->denyFollowRequestFrom($sender);
-        $this->assertEquals(2, $sender->getFollowingCount());
+        $senders[1]->follow($recipients[0]);
+
+        $recipients[0]->acceptFollowRequestFrom($senders[0]);
+        $recipients[1]->acceptFollowRequestFrom($senders[0]);
+        $recipients[2]->denyFollowRequestFrom($senders[0]);
+        $this->assertEquals(2, $senders[0]->getFollowingCount());
+        $this->assertEquals(1, $recipients[0]->getFollowedByCount());
     }
 
     /** @test */
@@ -263,6 +276,8 @@ class FollowersTest extends TestCase
         $recipients[0]->acceptFollowRequestFrom($sender);
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->denyFollowRequestFrom($sender);
+        $this->assertInstanceOf(Skybluesofa\Followers\Models\Follower::class, $sender->getFollowing($recipients[0]));
+        $this->assertInstanceOf(Skybluesofa\Followers\Models\Follower::class, $recipients[0]->getFollowedBy($sender));
         $this->assertCount(2, $sender->getAcceptedRequestsToFollow());
         $this->assertTrue($recipients[0]->isFollowedBy($sender));
     }
@@ -334,6 +349,7 @@ class FollowersTest extends TestCase
         $recipients[1]->acceptFollowRequestFrom($sender);
         $recipients[2]->blockBeingFollowedBy($sender);
         $this->assertCount(1, $sender->getBlockedFollowing());
+        $this->assertCount(1, $recipients[2]->getBlockedFollowedBy());
     }
 
     /** @test */
