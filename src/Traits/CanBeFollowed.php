@@ -21,9 +21,23 @@ trait CanBeFollowed
      *
      * @return bool
      */
+    public function canBeFollowedBy(Model $sender) {
+        // if sender is following the recipient return false
+        if ($followed = $this->getFollowedBy($sender)) {
+            if ($followed->status != Status::DENIED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @param Model $sender
+     *
+     * @return bool
+     */
     public function isFollowedBy(Model $sender)
     {
-        //return Follower::whereRecipient($this)->whereSender($sender)->where('status', Status::ACCEPTED)->exists();
         return $sender->whenFollowing($this)->where('status', Status::ACCEPTED)->exists();
     }
 
@@ -32,7 +46,7 @@ trait CanBeFollowed
      */
     public function followers()
     {
-        return Follower::where('recipient_id', $this->id);
+        return $this->morphMany(Follower::class, 'recipient');
     }
 
     /**
@@ -86,7 +100,7 @@ trait CanBeFollowed
      */
     public function hasBlockedBeingFollowedBy(Model $sender)
     {
-        return $this->followers()->whereSender($sender)->whereStatus(Status::BLOCKED)->exists();
+        return $this->followers()->whereFollowedBy($sender)->whereStatus(Status::BLOCKED)->exists();
     }
 
     /**
@@ -122,7 +136,7 @@ trait CanBeFollowed
      */
     public function getFollowedBy(Model $sender)
     {
-        return $this->findFollowedByRelationships($sender)->first();
+        return $this->whenFollowedBy($sender)->first();
     }
 
     /**
@@ -144,7 +158,7 @@ trait CanBeFollowed
      */
     public function getFollowerRequests()
     {
-        return Follower::whereRecipient($this)->whereStatus(Status::PENDING)->get();
+        return Follower::whereFollowing($this)->whereStatus(Status::PENDING)->get();
     }
 
     /**
@@ -155,7 +169,7 @@ trait CanBeFollowed
      */
     public function getAllFollowedBy()
     {
-        return $this->findFollowedByRelationships()->get();
+        return $this->findFollowedBy()->get();
     }
 
     /**
@@ -166,7 +180,7 @@ trait CanBeFollowed
      */
     public function getAcceptedRequestsToBeFollowed()
     {
-        return $this->findFollowedByRelationships(Status::ACCEPTED)->get();
+        return $this->findFollowedBy(Status::ACCEPTED)->get();
     }
 
     /**
@@ -175,7 +189,7 @@ trait CanBeFollowed
      */
      public function getPendingRequestsToBeFollowed()
      {
-         return $this->findFollowedByRelationships(Status::PENDING)->get();
+         return $this->findFollowedBy(Status::PENDING)->get();
      }
 
     /**
@@ -184,7 +198,7 @@ trait CanBeFollowed
      */
     public function getDeniedRequestsToBeFollowed()
     {
-        return $this->findFollowedByRelationships(Status::DENIED)->get();
+        return $this->findFollowedBy(Status::DENIED)->get();
     }
 
     /**
@@ -193,7 +207,7 @@ trait CanBeFollowed
      */
     public function getBlockedFollowedBy()
     {
-        return $this->findFollowedByRelationships(Status::BLOCKED)->get();
+        return $this->findFollowedBy(Status::BLOCKED)->get();
     }
 
     /**
@@ -215,7 +229,7 @@ trait CanBeFollowed
      */
     public function getFollowedByCount()
     {
-        return $this->findFollowedByRelationships(Status::ACCEPTED)->count();
+        return $this->findFollowedBy(Status::ACCEPTED)->count();
     }
 
     protected function getOrPaginateFollowedBy($builder, $perPage)
@@ -232,13 +246,11 @@ trait CanBeFollowed
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    private function findFollowedByRelationships($status = null)
+    private function findFollowedBy($status = null)
     {
 
         $query = Follower::where(function ($query) {
-            $query->where(function ($q) {
-                $q->whereRecipient($this);
-            });
+            $query->whereFollowing($this);
         });
 
         //if $status is passed, add where clause
@@ -259,7 +271,7 @@ trait CanBeFollowed
     private function getFollowedByQueryBuilder()
     {
 
-        $following = $this->findFollowedByRelationships(Status::ACCEPTED)->get(['sender_id', 'recipient_id']);
+        $following = $this->findFollowedBy(Status::ACCEPTED)->get(['sender_id', 'recipient_id']);
         $recipients  = $following->pluck('recipient_id')->all();
         $senders     = $following->pluck('sender_id')->all();
 

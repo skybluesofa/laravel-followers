@@ -10,8 +10,8 @@ class CreateFollowersTable extends Migration
 
         Schema::create(config('followers.tables.followers'), function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('sender_id');
-            $table->integer('recipient_id');
+            $table->morphs('sender');
+            $table->morphs('recipient');
             $table->tinyInteger('status')->default(0);
             $table->timestamps();
         });

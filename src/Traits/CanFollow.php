@@ -12,6 +12,14 @@ use Illuminate\Database\Eloquent\Model;
 trait CanFollow
 {
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function following()
+    {
+        return $this->morphMany(Follower::class, 'sender');
+    }
+
+    /**
      * @param Model $recipient
      *
      * @return \Skybluesofa\Followers\Models\Follower|false
@@ -22,38 +30,13 @@ trait CanFollow
             return false;
         }
 
-        return (new Follower)->fillSender($this)->fillRecipient($recipient)->fill([
+        $following = (new Follower)->fillRecipient($recipient)->fill([
             'status' => Status::PENDING,
-        ])->save();
+        ]);
 
-    }
+        $this->following()->save($following);
 
-    /**
-     * @param Model $recipient
-     *
-     * @return bool
-     */
-    public function canFollow($recipient)
-    {
-        if (!property_exists($recipient, 'canBeFollowed') || !$recipient->canBeFollowed) {
-            return false;
-        }
-
-        // if user has Blocked the recipient and changed his mind
-        // he can send a friend request after unblocking
-        if ($this->hasBlockedBeingFollowedBy($recipient)) {
-            $this->unblockBeingFollowedBy($recipient);
-            return true;
-        }
-
-        // if sender is following the recipient return false
-        if ($followed = Follower::whereRecipient($recipient)->whereSender($this)->first()) {
-        //if ($followed = $recipient->getFollowedBy($this)) {
-            if ($followed->status != Status::DENIED) {
-                return false;
-            }
-        }
-        return true;
+        return $following;
     }
 
     /**
@@ -64,6 +47,31 @@ trait CanFollow
     public function unfollow(Model $recipient)
     {
         return $this->whenFollowing($recipient)->delete();
+    }
+
+    /**
+     * @param Model $recipient
+     *
+     * @return bool
+     */
+    public function canFollow(Model $recipient)
+    {
+        if (!property_exists($recipient, 'canBeFollowed') || !$recipient->canBeFollowed) {
+            return false;
+        }
+
+        // if user has Blocked the recipient and changed his mind
+        // he can send a follow request after unblocking
+        if ($this->hasBlockedBeingFollowedBy($recipient)) {
+            $this->unblockBeingFollowedBy($recipient);
+            return true;
+        }
+
+        if (!$recipient->canBeFollowedBy($this)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -97,13 +105,13 @@ trait CanFollow
     }
 
     /**
-     * @param Model $sender
+     * @param Model $recipient
      *
      * @return \Skybluesofa\Followers\Models\Follower
      */
     public function getFollowing(Model $recipient)
     {
-        return $this->findFollowingRelationships($recipient)->first();
+        return $this->findFollowing($recipient)->first();
     }
 
     /**
@@ -128,7 +136,7 @@ trait CanFollow
      */
     public function getAllFollowing()
     {
-        return $this->findFollowingRelationships()->get();
+        return $this->findFollowing()->get();
     }
 
     /**
@@ -139,7 +147,7 @@ trait CanFollow
      */
     public function getAcceptedRequestsToFollow()
     {
-        return $this->findFollowingRelationships(Status::ACCEPTED)->get();
+        return $this->findFollowing(Status::ACCEPTED)->get();
     }
 
     /**
@@ -150,7 +158,7 @@ trait CanFollow
      */
     public function getPendingRequestsRequestsToFollow()
     {
-        return $this->findFollowingRelationships(Status::PENDING)->get();
+        return $this->findFollowing(Status::PENDING)->get();
     }
 
     /**
@@ -159,7 +167,7 @@ trait CanFollow
      */
    public function getDeniedRequestsToFollow()
    {
-       return $this->findFollowingRelationships(Status::DENIED)->get();
+       return $this->findFollowing(Status::DENIED)->get();
    }
 
     /**
@@ -168,7 +176,7 @@ trait CanFollow
      */
     public function getBlockedFollowing()
     {
-        return $this->findFollowingRelationships(Status::BLOCKED)->get();
+        return $this->findFollowing(Status::BLOCKED)->get();
     }
 
     /**
@@ -190,7 +198,7 @@ trait CanFollow
      */
     public function getFollowingCount()
     {
-        return $this->findFollowingRelationships(Status::ACCEPTED)->count();
+        return $this->findFollowing(Status::ACCEPTED)->count();
     }
 
     protected function getOrPaginateFollowing($builder, $perPage)
@@ -206,11 +214,11 @@ trait CanFollow
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    private function findFollowingRelationships($status = null)
+    private function findFollowing($status = null)
     {
         $query = Follower::where(function ($query) {
             $query->where(function ($q) {
-                $q->whereSender($this);
+                $q->whereFollowedBy($this);
             });
         });
 
@@ -232,7 +240,7 @@ trait CanFollow
     private function getFollowingQueryBuilder()
     {
 
-        $following = $this->findFollowingRelationships(Status::ACCEPTED)->get(['sender_id', 'recipient_id']);
+        $following = $this->findFollowing(Status::ACCEPTED)->get(['sender_id', 'recipient_id']);
         $recipients  = $following->pluck('recipient_id')->all();
         $senders     = $following->pluck('sender_id')->all();
 

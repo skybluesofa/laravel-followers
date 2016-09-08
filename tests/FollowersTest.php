@@ -24,6 +24,7 @@ class FollowersTest extends TestCase
     {
         $sender    = createUser();
         $recipient = createUser();
+
         $sender->follow($recipient);
         $sender->follow($recipient);
         $sender->follow($recipient);
@@ -139,53 +140,53 @@ class FollowersTest extends TestCase
     /** @test */
     public function user_can_block_another_user()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $user1 = createUser();
+        $user2 = createUser();
 
-        $sender->blockBeingFollowedBy($recipient);
+        $user1->blockBeingFollowedBy($user2);
 
-        $this->assertTrue($sender->hasBlockedBeingFollowedBy($recipient));
+        $this->assertTrue($user1->hasBlockedBeingFollowedBy($user2));
         //sender is not blocked by receipient
-        $this->assertTrue($recipient->isBlockedFromFollowing($sender));
+        $this->assertTrue($user2->isBlockedFromFollowing($user1));
     }
 
     /** @test */
     public function user_can_unblock_a_blocked_user()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $user1    = createUser();
+        $user2 = createUser();
 
-        $sender->blockBeingFollowedBy($recipient);
-        $sender->unblockBeingFollowedBy($recipient);
+        $user1->blockBeingFollowedBy($user2);
+        $user1->unblockBeingFollowedBy($user2);
 
-        $this->assertFalse($recipient->isBlockedFromBeingFollowedBy($sender));
-        $this->assertFalse($sender->hasBlockedBeingFollowedBy($recipient));
+        $this->assertFalse($user2->isBlockedFromBeingFollowedBy($user1));
+        $this->assertFalse($user1->hasBlockedBeingFollowedBy($user2));
     }
 
     /** @test */
     public function user_block_is_permanent_unless_blocker_decides_to_unblock()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $user1    = createUser();
+        $user2 = createUser();
 
-        $sender->blockBeingFollowedBy($recipient);
-        $this->assertTrue($recipient->isBlockedFromFollowing($sender));
+        $user1->blockBeingFollowedBy($user2);
+        $this->assertTrue($user2->isBlockedFromFollowing($user1));
 
         // now recipient blocks sender too
-        $recipient->blockBeingFollowedBy($sender);
+        $user2->blockBeingFollowedBy($user1);
 
         // expect that both users have blocked each other
-        $this->assertTrue($sender->isBlockedFromFollowing($recipient));
-        $this->assertTrue($recipient->isBlockedFromFollowing($sender));
+        $this->assertTrue($user1->isBlockedFromFollowing($user2));
+        $this->assertTrue($user2->isBlockedFromFollowing($user1));
 
-        $sender->unblockBeingFollowedBy($recipient);
+        $user1->unblockBeingFollowedBy($user2);
 
-        $this->assertFalse($sender->isBlockedFromBeingFollowedBy($recipient));
-        $this->assertTrue($recipient->isBlockedFromBeingFollowedBy($sender));
+        $this->assertFalse($user1->isBlockedFromBeingFollowedBy($user2));
+        $this->assertTrue($user2->isBlockedFromBeingFollowedBy($user1));
 
-        $recipient->unblockBeingFollowedBy($sender);
-        $this->assertFalse($sender->isBlockedFromBeingFollowedBy($recipient));
-        $this->assertFalse($recipient->isBlockedFromBeingFollowedBy($sender));
+        $user2->unblockBeingFollowedBy($user1);
+        $this->assertFalse($user1->isBlockedFromBeingFollowedBy($user2));
+        $this->assertFalse($user2->isBlockedFromBeingFollowedBy($user1));
     }
 
     /** @test */
