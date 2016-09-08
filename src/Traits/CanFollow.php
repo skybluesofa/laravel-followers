@@ -26,6 +26,10 @@ trait CanFollow
      */
     public function follow(Model $recipient)
     {
+        if ($this->followingCountReached()) {
+            return false;
+        }
+
         if (!$this->canFollow($recipient)) {
             return false;
         }
@@ -37,6 +41,20 @@ trait CanFollow
         $this->following()->save($following);
 
         return $following;
+    }
+
+    private function followingCountReached() {
+        $followingLimit = config('followers.limits.following');
+        // If the following limit resolves to 'true' (a non-zero number) or
+        // explicitly zero, then run the test
+        if ($followingLimit || $followingLimit===0) {
+            // If a limit has been set for how many a model can follow,
+            // then check that this limit has not been reached
+            if ($this->getFollowingCount() >= intval($followingLimit)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -60,15 +78,14 @@ trait CanFollow
             return false;
         }
 
+        if (!$recipient->canBeFollowedBy($this)) {
+            return false;
+        }
+
         // if user has Blocked the recipient and changed his mind
         // he can send a follow request after unblocking
         if ($this->hasBlockedBeingFollowedBy($recipient)) {
             $this->unblockBeingFollowedBy($recipient);
-            return true;
-        }
-
-        if (!$recipient->canBeFollowedBy($this)) {
-            return false;
         }
 
         return true;

@@ -219,6 +219,22 @@ class FollowersTest extends TestCase
     }
 
     /** @test */
+    public function number_of_follow_requests_is_limited()
+    {
+        $sender     = createUser();
+        $recipients = createUser([], 5);
+
+        foreach ($recipients as $recipient) {
+            $sender->follow($recipient);
+            $recipient->acceptFollowRequestFrom($sender);
+        }
+
+        $recipient = createUser();
+        $sender->follow($recipient);
+
+        $this->assertCount(5, $sender->getAllFollowing());
+    }
+    /** @test */
     public function it_returns_number_of_accepted_user_following()
     {
         $sender     = createUser();
@@ -340,6 +356,7 @@ class FollowersTest extends TestCase
         $this->assertCount(0, $recipients[3]->getAcceptedRequestsToBeFollowed());
 
         $this->containsOnlyInstancesOf(\App\User::class, $sender->getAcceptedRequestsToFollow());
+        $this->containsOnlyInstancesOf(\App\User::class, $recipients[1]->getAllFollowedBy());
     }
 
     /** @test */

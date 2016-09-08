@@ -6,4 +6,8 @@ return [
         'followers' => 'followers',
     ],
 
+    'limits' => [
+        'following' => null,
+    ],
+
 ];
