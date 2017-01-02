@@ -22,6 +22,12 @@ trait CanBeFollowed
      * @return bool
      */
     public function canBeFollowedBy(Model $sender) {
+        
+        // if he tries to follow him self.
+        if ($this->id == $sender->id) {
+            return false;
+        }
+        
         // if sender is following the recipient return false
         if ($followed = $this->getFollowedBy($sender)) {
             if ($followed->status != Status::DENIED) {
