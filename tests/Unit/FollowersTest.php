@@ -1,29 +1,22 @@
 <?php
-
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\User;
 
 class FollowersTest extends TestCase
 {
-    // use DatabaseTransactions;
-
-    /** @test */
-    public function user_can_send_a_follow_request()
+    public function test_user_can_send_a_follow_request()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
 
         $sender->follow($recipient);
 
         $this->assertCount(1, $recipient->getFollowerRequests());
     }
 
-    /** @test */
-    public function user_can_not_send_a_follow_request_if_follow_request_is_pending()
+    public function test_user_can_not_send_a_follow_request_if_follow_request_is_pending()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
 
         $sender->follow($recipient);
         $sender->follow($recipient);
@@ -33,11 +26,10 @@ class FollowersTest extends TestCase
     }
 
 
-    /** @test */
-    public function user_can_send_a_follow_request_if_follow_has_already_been_denied()
+    public function test_user_can_send_a_follow_request_if_follow_has_already_been_denied()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
 
         $sender->follow($recipient);
         $recipient->denyFollowRequestFrom($sender);
@@ -47,11 +39,10 @@ class FollowersTest extends TestCase
         $this->assertCount(1, $recipient->getFollowerRequests());
     }
 
-    /** @test */
-    public function user_can_remove_a_follow_request()
+    public function test_user_can_remove_a_follow_request()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
 
         $sender->follow($recipient);
         $this->assertCount(1, $recipient->getFollowerRequests());
@@ -70,22 +61,20 @@ class FollowersTest extends TestCase
         $this->assertEquals(false, $recipient->isFollowedBy($sender));
     }
 
-    /** @test */
-    public function user_has_follow_request_from_another_user_if_he_received_a_follow_request()
+    public function test_user_has_follow_request_from_another_user_if_he_received_a_follow_request()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
         //send fr
         $sender->follow($recipient);
 
         $this->assertTrue($recipient->hasFollowRequestFrom($sender));
     }
 
-    /** @test */
-    public function user_has_sent_follow_request_to_this_user_if_he_already_sent_request()
+    public function test_user_has_sent_follow_request_to_this_user_if_he_already_sent_request()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
         //send fr
         $sender->follow($recipient);
 
@@ -93,11 +82,10 @@ class FollowersTest extends TestCase
         $this->assertTrue($recipient->hasFollowRequestFrom($sender));
     }
 
-    /** @test */
-    public function user_has_not_follow_request_from_another_user_if_he_accepted_the_follow_request()
+    public function test_user_has_not_follow_request_from_another_user_if_he_accepted_the_follow_request()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
         //send fr
         $sender->follow($recipient);
         //accept fr
@@ -107,11 +95,10 @@ class FollowersTest extends TestCase
         $this->assertFalse($recipient->hasFollowRequestFrom($sender));
     }
 
-    /** @test */
-    public function user_cannot_accept_his_own_follow_request()
+    public function test_user_cannot_accept_his_own_follow_request()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
 
         //send fr
         $sender->follow($recipient);
@@ -120,11 +107,10 @@ class FollowersTest extends TestCase
         $this->assertFalse($recipient->isFollowing($sender));
     }
 
-    /** @test */
-    public function user_can_deny_a_follow_request()
+    public function test_user_can_deny_a_follow_request()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
 
         $sender->follow($recipient);
 
@@ -137,11 +123,10 @@ class FollowersTest extends TestCase
         $this->assertCount(1, $sender->getDeniedRequestsToFollow());
     }
 
-    /** @test */
-    public function user_can_block_another_user()
+    public function test_user_can_block_another_user()
     {
-        $user1 = createUser();
-        $user2 = createUser();
+        $user1 = factory(User::class)->create();
+        $user2  = factory(User::class)->create();
 
         $user1->blockBeingFollowedBy($user2);
 
@@ -150,11 +135,10 @@ class FollowersTest extends TestCase
         $this->assertTrue($user2->isBlockedFromFollowing($user1));
     }
 
-    /** @test */
-    public function user_can_unblock_a_blocked_user()
+    public function test_user_can_unblock_a_blocked_user()
     {
-        $user1    = createUser();
-        $user2 = createUser();
+        $user1 = factory(User::class)->create();
+        $user2  = factory(User::class)->create();
 
         $user1->blockBeingFollowedBy($user2);
         $user1->unblockBeingFollowedBy($user2);
@@ -163,11 +147,10 @@ class FollowersTest extends TestCase
         $this->assertFalse($user1->hasBlockedBeingFollowedBy($user2));
     }
 
-    /** @test */
-    public function user_block_is_permanent_unless_blocker_decides_to_unblock()
+    public function test_user_block_is_permanent_unless_blocker_decides_to_unblock()
     {
-        $user1    = createUser();
-        $user2 = createUser();
+        $user1 = factory(User::class)->create();
+        $user2  = factory(User::class)->create();
 
         $user1->blockBeingFollowedBy($user2);
         $this->assertTrue($user2->isBlockedFromFollowing($user1));
@@ -189,11 +172,10 @@ class FollowersTest extends TestCase
         $this->assertFalse($user2->isBlockedFromBeingFollowedBy($user1));
     }
 
-    /** @test */
-    public function user_can_send_friend_request_to_user_who_is_blocked()
+    public function test_user_can_send_friend_request_to_user_who_is_blocked()
     {
-        $sender    = createUser();
-        $recipient = createUser();
+        $sender = factory(User::class)->create();
+        $recipient  = factory(User::class)->create();
 
         $sender->blockBeingFollowedBy($recipient);
         $sender->follow($recipient);
@@ -202,21 +184,19 @@ class FollowersTest extends TestCase
         $this->assertCount(1, $recipient->getFollowerRequests());
     }
 
-    /** @test */
-    public function user_cannot_follow_a_nonfollowable_model()
+    public function test_user_cannot_follow_a_nonfollowable_model()
     {
-        $sender     = createUser();
+        $sender = factory(User::class)->create();
         // Widget does not have the 'CanBeFollowed' trait
-        $recipient = createWidget();
+        $recipient  = factory(Widget::class)->create();
 
         $this->assertFalse($sender->follow($recipient));
     }
 
-    /** @test */
-    public function it_returns_all_user_follow_requests()
+    public function test_it_returns_all_user_follow_requests()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 3);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 3)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -228,27 +208,26 @@ class FollowersTest extends TestCase
         $this->assertCount(3, $sender->getAllFollowing());
     }
 
-    /** @test */
-    public function number_of_follow_requests_is_limited()
+    public function test_number_of_follow_requests_is_limited()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 5);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 5)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
             $recipient->acceptFollowRequestFrom($sender);
         }
 
-        $recipient = createUser();
+        $recipient = factory(User::class)->create();
         $sender->follow($recipient);
 
         $this->assertCount(5, $sender->getAllFollowing());
     }
-    /** @test */
-    public function it_returns_number_of_accepted_user_following()
+    
+    public function test_it_returns_number_of_accepted_user_following()
     {
-        $senders     = createUser([], 2);
-        $recipients = createUser([], 3);
+        $senders = factory(User::class, 2)->create();
+        $recipients = factory(User::class, 3)->create();
 
         foreach ($recipients as $recipient) {
             $senders[0]->follow($recipient);
@@ -263,11 +242,10 @@ class FollowersTest extends TestCase
         $this->assertEquals(1, $recipients[0]->getFollowedByCount());
     }
 
-    /** @test */
-    public function it_returns_accepted_user_following()
+    public function test_it_returns_accepted_user_following()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 3);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 3)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -282,11 +260,10 @@ class FollowersTest extends TestCase
         $this->assertTrue($recipients[0]->isFollowedBy($sender));
     }
 
-    /** @test */
-    public function it_returns_only_accepted_user_friendships()
+    public function test_it_returns_only_accepted_user_friendships()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 4);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 4)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -303,11 +280,10 @@ class FollowersTest extends TestCase
         $this->assertCount(0, $recipients[3]->getAcceptedRequestsToBeFollowed());
     }
 
-    /** @test */
-    public function it_returns_pending_user_friendships()
+    public function test_it_returns_pending_user_friendships()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 3);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 3)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -318,11 +294,10 @@ class FollowersTest extends TestCase
         $this->assertCount(1, $recipients[1]->getPendingRequestsToBeFollowed());
     }
 
-    /** @test */
-    public function it_returns_denied_user_friendships()
+    public function test_it_returns_denied_user_friendships()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 3);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 3)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -335,11 +310,10 @@ class FollowersTest extends TestCase
         $this->assertCount(1, $recipients[2]->getDeniedRequestsToBeFollowed());
     }
 
-    /** @test */
-    public function it_returns_blocked_user_friendships()
+    public function test_it_returns_blocked_user_friendships()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 3);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 3)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -352,11 +326,10 @@ class FollowersTest extends TestCase
         $this->assertCount(1, $recipients[2]->getBlockedFollowedBy());
     }
 
-    /** @test */
-    public function it_returns_followed_users()
+    public function test_it_returns_followed_users()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 4);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 4)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -375,11 +348,10 @@ class FollowersTest extends TestCase
         $this->containsOnlyInstancesOf(\App\User::class, $recipients[1]->getAllFollowedBy());
     }
 
-    /** @test */
-    public function it_returns_user_follows_per_page()
+    public function test_it_returns_user_follows_per_page()
     {
-        $sender     = createUser();
-        $recipients = createUser([], 6);
+        $sender = factory(User::class)->create();
+        $recipients = factory(User::class, 6)->create();
 
         foreach ($recipients as $recipient) {
             $sender->follow($recipient);
@@ -402,5 +374,4 @@ class FollowersTest extends TestCase
         $this->containsOnlyInstancesOf(\App\User::class, $sender->getFollowingList());
         $this->containsOnlyInstancesOf(\App\User::class, $recipients[5]->getFollowedByList());
     }
-
 }

@@ -64,11 +64,6 @@ $user->follow($recipient);
 $recipient->acceptFollowRequestFrom($user);
 ```
 
-#### Check if User can follow Recipient
-```php
-$user->canFollow($recipient);
-```
-
 #### Deny a Follow Request
 ```php
 $recipient->denyFollowRequestFrom($user);
@@ -121,39 +116,27 @@ $user->isBlockedFromFollowing($recipient);
 
 #### Get a single friendship
 ```php
-$user->getFollowing($recipient);
+$user->getFriendship($recipient);
 ```
 
 #### Get a list of all Friendships
 ```php
-$user->getFollowingList();
-```
-#### Get a list of all Friendships Paginated
-```php
-$user->getFollowingList($per_page = 20);
+$user->getAllFriendships();
 ```
 
-#### Get Accepted Requests to follow
+#### Get a list of pending Friendships
 ```php
-$user->getAcceptedRequestsToFollow();
-```
-#### Get Pending Requests to follow
-```php
-$user->getPendingRequestsRequestsToFollow();
-```
-#### Get Denied Requests to follow
-```php
-$user->getDeniedRequestsToFollow();
-```
-#### Get Blocked Requests to follow
-```php
-$user->getBlockedFollowing();
+$user->getPendingFriendships();
 ```
 
-
-#### Get a list of Following
+#### Get a list of accepted Friendships
 ```php
-$user->getAllFollowing();
+$user->getAcceptedFriendships();
+```
+
+#### Get a list of denied Friendships
+```php
+$user->getDeniedFriendships();
 ```
 
 #### Get a list of blocked Friendships
@@ -161,18 +144,27 @@ $user->getAllFollowing();
 $user->getBlockedFriendships();
 ```
 
+#### Get a list of pending Friend Requests
+```php
+$user->getFriendRequests();
+```
+
 #### Get the number of Friends
 ```php
-$user->getFollowingCount();
+$user->getFriendsCount();
 ```
 
 ## Friends
 To get a collection of friend models (ex. User) use the following methods:
-#### Get Friends Following
+#### Get Friends
 ```php
-$user->following();
+$user->getFriends();
 ```
 
+#### Get Friends Paginated
+```php
+$user->getFriends($perPage = 20);
+```
 
 ## Thank you
 The basis of this code was garnered from [https://github.com/hootlex/laravel-friendships](https://github.com/hootlex/laravel-friendships). Although it was a jumping off point, much of the code has been rewritten to allow for Following as opposed to Mutual Friendship.

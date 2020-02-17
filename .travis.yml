@@ -1,17 +1,18 @@
 language: php
 
+os: linux
+
 services:
   - mysql
 
 php:
-  - 5.6
-  - 7.0
+  - 7.2
+  - 7.3
+  - 7.4
 
 addons:
     code_climate:
         repo_token: a4a2b434edd8850ccf5354c3dc1202b1c824cd442fe7c4c5a2d0d82edef1cae0
-
-sudo: false
 
 env:
     - APP_ENV=testing DB_CONNECTION=mysql DB_DATABASE=travis_db DB_USERNAME=travis DB_PASSWORD= CACHE_DRIVER=array SESSION_DRIVER=array QUEUE_DRIVER=sync
@@ -23,18 +24,10 @@ cache:
     - $HOME/.composer/cache
 
 install:
-  - COMPOSER_DISCARD_CHANGES=1 composer install --dev --prefer-source --no-interaction
+  - COMPOSER_DISCARD_CHANGES=1 composer install --prefer-source --no-interaction
 
 before_script:
   - mysql -e 'create database travis_db;'
-  - cp src/database/migrations/create_followers_table.php vendor/laravel/laravel/database/migrations/2016_09_07_053825_create_followers_table.php
-  - yes | cp tests/config/.env.travis .env
-  - yes | cp tests/config/followers.php vendor/laravel/laravel/config/followers.php
-  - yes | cp tests/Stub_User.php vendor/laravel/laravel/app/User.php
-  - cd vendor/laravel/laravel
-  - composer update --dev --prefer-source --no-interaction
-  - php artisan migrate
-  - cd -
 
 script:
   - vendor/bin/phpunit

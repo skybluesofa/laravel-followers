@@ -1,5 +1,4 @@
 <?php
-
 namespace Skybluesofa\Followers\Models;
 
 use Skybluesofa\Followers\Status;
@@ -11,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Follower extends Model
 {
-
     /**
      * @var array
      */
@@ -47,47 +45,47 @@ class Follower extends Model
      * @param Model $recipient
      * @return $this
      */
-     public function fillRecipient($recipient)
-     {
-         return $this->fill([
-             'recipient_id' => $recipient->getKey(),
-             'recipient_type' => $recipient->getMorphClass()
-         ]);
-     }
+    public function fillRecipient($recipient)
+    {
+        return $this->fill([
+            'recipient_id' => $recipient->getKey(),
+            'recipient_type' => $recipient->getMorphClass()
+        ]);
+    }
 
     /**
      * @param Model $recipient
      * @return $this
      */
-     public function fillSender($sender)
-         {
-             return $this->fill([
-                 'sender_id' => $sender->getKey(),
-                 'sender_type' => $sender->getMorphClass()
-             ]);
-         }
+    public function fillSender($sender)
+    {
+        return $this->fill([
+            'sender_id' => $sender->getKey(),
+            'sender_type' => $sender->getMorphClass()
+        ]);
+    }
 
     /**
      * @param $query
      * @param Model $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
-     public function scopeWhereFollowing($query, $recipient)
-     {
-         return $query->where('recipient_id', $recipient->getKey())
-             ->where('recipient_type', $recipient->getMorphClass());
-     }
+    public function scopeWhereFollowing($query, $recipient)
+    {
+        return $query->where('recipient_id', $recipient->getKey())
+            ->where('recipient_type', $recipient->getMorphClass());
+    }
 
     /**
      * @param $query
      * @param Model $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
-     public function scopeWhereFollowedBy($query, $sender)
-     {
-         return $query->where('sender_id', $sender->getKey())
-             ->where('sender_type', $sender->getMorphClass());
-     }
+    public function scopeWhereFollowedBy($query, $sender)
+    {
+        return $query->where('sender_id', $sender->getKey())
+            ->where('sender_type', $sender->getMorphClass());
+    }
 
     /**
      * @param $query
@@ -97,12 +95,10 @@ class Follower extends Model
      */
     public function scopeFollowing($query, $sender, $recipient)
     {
-        return $query->where(function ($queryIn) use ($sender, $recipient){
+        return $query->where(function ($queryIn) use ($sender, $recipient) {
             $queryIn->where(function ($q) use ($sender, $recipient) {
                 $q->whereFollowedBy($sender)->whereFollowing($recipient);
             });
         });
     }
-
-
 }
