@@ -21,13 +21,8 @@ trait CanBeFollowed
      *
      * @return bool
      */
-    public function canBeFollowedBy(Model $sender) {
-        
-        // if he tries to follow him self.
-        if ($this->id == $sender->id) {
-            return false;
-        }
-        
+    public function canBeFollowedBy(Model $sender)
+    {
         // if sender is following the recipient return false
         if ($followed = $this->getFollowedBy($sender)) {
             if ($followed->status != Status::DENIED) {
@@ -193,10 +188,10 @@ trait CanBeFollowed
      * @return \Illuminate\Database\Eloquent\Collection
      *
      */
-     public function getPendingRequestsToBeFollowed()
-     {
-         return $this->findFollowedBy(Status::PENDING)->get();
-     }
+    public function getPendingRequestsToBeFollowed()
+    {
+        return $this->findFollowedBy(Status::PENDING)->get();
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Collection

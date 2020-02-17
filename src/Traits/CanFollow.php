@@ -43,7 +43,8 @@ trait CanFollow
         return $following;
     }
 
-    private function followingCountReached() {
+    private function followingCountReached()
+    {
         $followingLimit = config('followers.limits.following');
         // If the following limit resolves to 'true' (a non-zero number) or
         // explicitly zero, then run the test
@@ -182,10 +183,10 @@ trait CanFollow
      * @return \Illuminate\Database\Eloquent\Collection
      *
      */
-   public function getDeniedRequestsToFollow()
-   {
-       return $this->findFollowing(Status::DENIED)->get();
-   }
+    public function getDeniedRequestsToFollow()
+    {
+        return $this->findFollowing(Status::DENIED)->get();
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Collection
@@ -263,5 +264,4 @@ trait CanFollow
 
         return $this->where('id', '!=', $this->getKey())->whereIn('id', array_merge($recipients, $senders));
     }
-
 }
