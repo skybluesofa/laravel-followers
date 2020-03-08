@@ -54,32 +54,46 @@ class User extends Model
 ## How to use
 [Check the Test file to see the package in action](https://github.com/skybluesofa/laravel-followers/blob/master/tests/FollowersTest.php)
 
+### Methods
+
 #### Send a Follow Request
+
+Will trigger a `Skybluesofa\LaravelFollowers\Events\FollowRequest` event.
 ```php
 $user->follow($recipient);
 ```
 
 #### Accept a Follow Request
+
+Will trigger a `Skybluesofa\LaravelFollowers\Events\FollowRequestAccepted` event.
 ```php
 $recipient->acceptFollowRequestFrom($user);
 ```
 
 #### Deny a Follow Request
+
+Will trigger a `Skybluesofa\LaravelFollowers\Events\FollowRequestDenied` event.
 ```php
 $recipient->denyFollowRequestFrom($user);
 ```
 
 #### Remove Follow
+
+Will trigger a `Skybluesofa\LaravelFollowers\Events\Unfollow` event.
 ```php
 $user->unfollow($recipient);
 ```
 
 #### Block a User
+
+Will trigger a `Skybluesofa\LaravelFollowers\Events\FollowingBlocked` event.
 ```php
 $user->blockBeingFollowedBy($recipient);
 ```
 
 #### Unblock a User
+
+Will trigger a `Skybluesofa\LaravelFollowers\Events\FollowingUnblocked` event.
 ```php
 $user->unblockBeingFollowedBy($recipient);
 ```
@@ -165,6 +179,21 @@ $user->getFriends();
 ```php
 $user->getFriends($perPage = 20);
 ```
+
+### Events
+
+These events are triggered during the lifecycle of following/unfollowing/accept/deny followers:
+
+```php
+Skybluesofa\LaravelFollowers\Events\FollowingBlocked(Model $recipient, Model $sender);
+Skybluesofa\LaravelFollowers\Events\FollowingUnblocked(Model $recipient, Model $sender);
+Skybluesofa\LaravelFollowers\Events\FollowRequest(Model $recipient, Model $sender);
+Skybluesofa\LaravelFollowers\Events\FollowRequestAccepted(Model $recipient, Model $sender);
+Skybluesofa\LaravelFollowers\Events\FollowRequestDenied(Model $recipient, Model $sender);
+Skybluesofa\LaravelFollowers\Events\Unfollow(Model $recipient, Model $sender);
+```
+
+To listen for and react to these events, follow the [instructions available in the Laravel Documentation](https://laravel.com/docs/7.x/events#defining-listeners).
 
 ## Thank you
 The basis of this code was garnered from [https://github.com/hootlex/laravel-friendships](https://github.com/hootlex/laravel-friendships). Although it was a jumping off point, much of the code has been rewritten to allow for Following as opposed to Mutual Friendship.
