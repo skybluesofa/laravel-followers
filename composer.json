@@ -9,14 +9,6 @@
             "email": "connect@skybluesofa.com"
         }
     ],
-    "autoload-dev": {
-        "classmap": [
-            "tests/TestCase.php"
-        ],
-        "files": [
-            "tests/helpers.php"
-        ]
-    },
     "require": {
         "php": ">=7.1.0"
     },
@@ -28,6 +20,11 @@
     "autoload": {
         "psr-4": {
             "Skybluesofa\\Followers\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Skybluesofa\\Followers\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "stable"
