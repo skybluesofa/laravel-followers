@@ -4,6 +4,8 @@ namespace Skybluesofa\Followers\Traits;
 use Skybluesofa\Followers\Models\Follower;
 use Skybluesofa\Followers\Status;
 use Illuminate\Database\Eloquent\Model;
+use Skybluesofa\Followers\Events\FollowRequest;
+use Skybluesofa\Followers\Events\Unfollow;
 
 /**
  * Class Followable
@@ -33,6 +35,9 @@ trait CanFollow
         if (!$this->canFollow($recipient)) {
             return false;
         }
+
+        $sender = $this->get_called_class();
+        event(new FollowRequest($recipient, $sender));
 
         $following = (new Follower)->fillRecipient($recipient)->fill([
             'status' => Status::PENDING,
@@ -65,6 +70,9 @@ trait CanFollow
      */
     public function unfollow(Model $recipient)
     {
+        $sender = $this->get_called_class();
+        event(new Unfollow($recipient, $sender));
+
         return $this->whenFollowing($recipient)->delete();
     }
 

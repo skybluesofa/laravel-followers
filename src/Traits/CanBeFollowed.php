@@ -4,6 +4,10 @@ namespace Skybluesofa\Followers\Traits;
 use Skybluesofa\Followers\Models\Follower;
 use Skybluesofa\Followers\Status;
 use Illuminate\Database\Eloquent\Model;
+use Skybluesofa\Followers\Events\FollowingBlocked;
+use Skybluesofa\Followers\Events\FollowingUnblocked;
+use Skybluesofa\Followers\Events\FollowRequestDenied;
+use Skybluesofa\Followers\Events\FollowRequestAccepted;
 
 /**
  * Class Followable
@@ -67,6 +71,9 @@ trait CanBeFollowed
      */
     public function acceptFollowRequestFrom(Model $sender)
     {
+        $recipient = $this->get_called_class();
+        event(new FollowRequestAccepted($recipient, $sender));
+
         return $sender->whenFollowing($this)->update([
             'status' => Status::ACCEPTED,
         ]);
@@ -79,6 +86,9 @@ trait CanBeFollowed
      */
     public function denyFollowRequestFrom(Model $sender)
     {
+        $recipient = $this->get_called_class();
+        event(new FollowRequestDenied($recipient, $sender));
+
         return $sender->whenFollowing($this)->update([
             'status' => Status::DENIED,
         ]);
@@ -115,6 +125,9 @@ trait CanBeFollowed
             $this->whenFollowedBy($sender)->delete();
         }
 
+        $recipient = $this->get_called_class();
+        event(new FollowingBlocked($recipient, $sender));
+
         return (new Follower)->fillSender($sender)->fillRecipient($this)->fill([
             'status' => Status::BLOCKED,
         ])->save();
@@ -127,6 +140,9 @@ trait CanBeFollowed
      */
     public function unblockBeingFollowedBy(Model $sender)
     {
+        $recipent = $this->get_called_class();
+        event(new FollowingUnblocked($recipent, $sender));
+
         return $this->whenFollowedBy($sender)->delete();
     }
 
