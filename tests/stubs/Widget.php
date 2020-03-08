@@ -1,5 +1,5 @@
 <?php
-//namespace App;
+namespace Skybluesofa\Followers\Tests\Stubs;
 
 use Illuminate\Database\Eloquent\Model;
 

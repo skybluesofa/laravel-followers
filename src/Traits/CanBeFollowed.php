@@ -71,8 +71,7 @@ trait CanBeFollowed
      */
     public function acceptFollowRequestFrom(Model $sender)
     {
-        $recipient = $this->get_called_class();
-        event(new FollowRequestAccepted($recipient, $sender));
+        event(new FollowRequestAccepted($this, $sender));
 
         return $sender->whenFollowing($this)->update([
             'status' => Status::ACCEPTED,
@@ -86,8 +85,7 @@ trait CanBeFollowed
      */
     public function denyFollowRequestFrom(Model $sender)
     {
-        $recipient = $this->get_called_class();
-        event(new FollowRequestDenied($recipient, $sender));
+        event(new FollowRequestDenied($this, $sender));
 
         return $sender->whenFollowing($this)->update([
             'status' => Status::DENIED,
@@ -125,8 +123,7 @@ trait CanBeFollowed
             $this->whenFollowedBy($sender)->delete();
         }
 
-        $recipient = $this->get_called_class();
-        event(new FollowingBlocked($recipient, $sender));
+        event(new FollowingBlocked($this, $sender));
 
         return (new Follower)->fillSender($sender)->fillRecipient($this)->fill([
             'status' => Status::BLOCKED,
@@ -140,8 +137,7 @@ trait CanBeFollowed
      */
     public function unblockBeingFollowedBy(Model $sender)
     {
-        $recipent = $this->get_called_class();
-        event(new FollowingUnblocked($recipent, $sender));
+        event(new FollowingUnblocked($this, $sender));
 
         return $this->whenFollowedBy($sender)->delete();
     }

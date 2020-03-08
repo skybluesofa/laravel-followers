@@ -1,8 +1,10 @@
 <?php
+namespace Skybluesofa\Followers\Tests;
 
 use Illuminate\Database\Eloquent\Factory;
+use Orchestra\Testbench\TestCase as BaseTestCase;
 
-abstract class TestCase extends Orchestra\Testbench\TestCase
+abstract class TestCase extends BaseTestCase
 {
 
     /**

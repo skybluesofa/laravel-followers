@@ -36,8 +36,7 @@ trait CanFollow
             return false;
         }
 
-        $sender = $this->get_called_class();
-        event(new FollowRequest($recipient, $sender));
+        event(new FollowRequest($recipient, $this));
 
         $following = (new Follower)->fillRecipient($recipient)->fill([
             'status' => Status::PENDING,
@@ -70,8 +69,7 @@ trait CanFollow
      */
     public function unfollow(Model $recipient)
     {
-        $sender = $this->get_called_class();
-        event(new Unfollow($recipient, $sender));
+        event(new Unfollow($recipient, $this));
 
         return $this->whenFollowing($recipient)->delete();
     }
