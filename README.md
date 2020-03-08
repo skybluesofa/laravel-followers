@@ -4,7 +4,7 @@
 
 Gives Eloquent models the ability to manage their followers.
 
-##Models can:
+## Models can:
 - Send Follow Requests
 - Accept Follow Requests
 - Deny Follow Requests
